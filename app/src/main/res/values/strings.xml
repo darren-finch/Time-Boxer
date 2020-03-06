@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Time Boxer</string>
+
+    <string-array name="time_formats">
+        <item>min</item>
+        <item>hr</item>
+        <item>day</item>
+    </string-array>
+</resources>
