@@ -6,16 +6,18 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
-import com.example.timeboxer.MainViewModel;
+import com.example.timeboxer.MainActivity;
+import com.example.timeboxer.TaskViewModel;
 import com.example.timeboxer.R;
 import com.example.timeboxer.recyclerviews.MarginItemDecoration;
 import com.example.timeboxer.recyclerviews.TasksRecyclerAdapter;
@@ -23,18 +25,18 @@ import com.example.timeboxer.room.Task;
 
 import java.util.List;
 
-public class HomeFragment extends Fragment
+public class HomeFragment extends NavHostFragment
 {
     private RecyclerView recyclerView;
+    private ProgressBar progressBar;
     private TasksRecyclerAdapter adapter;
 
-    private MainViewModel viewModel;
-    private OnFragmentEventListener listener;
+    private int overallProgress;
+    private int overallTime;
 
-    public static HomeFragment newInstance()
-    {
-        return new HomeFragment();
-    }
+    private TaskViewModel viewModel;
+
+    private OnFragmentEventListener listener;
 
     @Nullable
     @Override
@@ -47,9 +49,36 @@ public class HomeFragment extends Fragment
     public void onActivityCreated(@Nullable Bundle savedInstanceState)
     {
         super.onActivityCreated(savedInstanceState);
-        viewModel = ViewModelProviders.of(getActivity()).get(MainViewModel.class);
-        adapter = new TasksRecyclerAdapter(viewModel.getAllTasks().getValue());
-        adapter.setOnTaskMenuItemSelectedListener(new TasksRecyclerAdapter.OnTaskMenuItemSelectedListener()
+
+        viewModel = MainActivity.viewModel;
+
+        adapter = new TasksRecyclerAdapter();
+        Log.i("HomeFragment", "All tasks = " + viewModel.getAllTasks().getValue());
+        viewModel.getAllTasks().observe(getViewLifecycleOwner(), new Observer<List<Task>>()
+        {
+            @Override
+            public void onChanged(List<Task> tasks)
+            {
+                overallTime = 0;
+                overallProgress = 0;
+                for(Task task : tasks)
+                {
+                    overallTime++;
+                    if(task.isDone())
+                    {
+                        overallProgress++;
+                    }
+                }
+                updateTaskProgressBar();
+                if(overallTime > 0 && overallProgress == overallTime)
+                {
+                    if(listener != null)
+                        listener.onAllTasksCompleted();
+                }
+                adapter.updateTasks(tasks);
+            }
+        });
+        adapter.setOnTasksAdapterEventListener(new TasksRecyclerAdapter.OnTasksAdapterEventListener()
         {
             @Override
             public void onTaskMenuItemSelected(int position, int itemId)
@@ -68,25 +97,36 @@ public class HomeFragment extends Fragment
                         break;
                 }
             }
-        });
-        viewModel.getAllTasks().observe(getActivity(), new Observer<List<Task>>()
-        {
+
             @Override
-            public void onChanged(List<Task> tasks)
+            public void onIsDoneUpdated(int position, boolean isDone)
             {
-                adapter.updateTasks(tasks);
+                Task task = adapter.getTaskAtPosition(position);
+                task.setDone(isDone);
+                Log.i("HomeFragment", "The task's UUID is " + task.getUuid());
+
+                viewModel.updateTask(task);
             }
         });
 
-        recyclerView = getView().findViewById(R.id.tasksRecyclerView);
+        recyclerView = getView().findViewById(R.id.futureTasksRecyclerView);
         recyclerView.setAdapter(adapter);
         recyclerView.addItemDecoration(new MarginItemDecoration(16));
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
+
+        progressBar = getView().findViewById(R.id.taskProgressBar);
+    }
+
+    private void updateTaskProgressBar()
+    {
+        progressBar.setMax(overallTime);
+        progressBar.setProgress(overallProgress);
     }
 
     public interface OnFragmentEventListener
     {
         void onEditTask(Task task);
+        void onAllTasksCompleted();
     }
 
     public void setOnFragmentEventListener(OnFragmentEventListener listener)

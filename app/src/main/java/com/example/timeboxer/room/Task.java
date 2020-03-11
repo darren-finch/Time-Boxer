@@ -7,17 +7,20 @@ import androidx.room.PrimaryKey;
 public class Task
 {
     @PrimaryKey(autoGenerate = true)
-    private int uid;
+    private int uuid;
 
+    private boolean isDone;
     private String taskName = "";
     private String taskDescription;
     private int timeToComplete;
     private String timeFormat;
+    //TODO: Add startTime for task. This is set from the calendar view. In the calendar view you'll create tasks for certain days and you'll need to know when the task starts.
 
     public boolean isExpanded;
 
-    public Task(String taskName, String taskDescription, int timeToComplete, String timeFormat)
+    public Task(boolean isDone, String taskName, String taskDescription, int timeToComplete, String timeFormat)
     {
+        this.isDone = isDone;
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.timeToComplete = timeToComplete;
@@ -57,13 +60,21 @@ public class Task
     {
         this.timeFormat = timeFormat;
     }
-    public int getUid()
+    public boolean isDone()
     {
-        return uid;
+        return isDone;
     }
-    public void setUid(int uid)
+    public void setDone(boolean done)
     {
-        this.uid = uid;
+        isDone = done;
+    }
+    public int getUuid()
+    {
+        return uuid;
+    }
+    public void setUuid(int uuid)
+    {
+        this.uuid = uuid;
     }
     public boolean isExpanded()
     {

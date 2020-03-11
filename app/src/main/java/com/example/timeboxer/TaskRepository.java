@@ -74,7 +74,7 @@ public class TaskRepository
         @Override
         protected Void doInBackground(Task... tasks)
         {
-            Log.i("TaskRepository", "Task name is " + tasks[0].getTaskName());
+            Log.i("TaskRepository", tasks[0].isDone() ? "THE TASK IS DONE!" : "");
             dao.updateTask(tasks[0]);
             return null;
         }

@@ -3,9 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/deleteTaskButton"
-        android:title="Delete" />
-    <item
         android:id="@+id/editTaskButton"
         android:title="Edit" />
+    <item
+        android:id="@+id/deleteTaskButton"
+        android:title="Delete" />
 </menu>

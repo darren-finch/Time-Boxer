@@ -6,12 +6,14 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.timeboxer.R;
@@ -25,11 +27,11 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
     private List<Task> tasks;
     private Icon collapseIcon;
     private Icon expandIcon;
-    private OnTaskMenuItemSelectedListener listener;
+    private OnTasksAdapterEventListener listener;
 
-    public TasksRecyclerAdapter(List<Task> tasks)
+    public TasksRecyclerAdapter()
     {
-        this.tasks = tasks;
+        tasks = new ArrayList<>();
         collapseIcon = Icon.createWithResource("com.example.timeboxer", R.drawable.ic_collapse);
         expandIcon = Icon.createWithResource("com.example.timeboxer", R.drawable.ic_expand);
     }
@@ -48,6 +50,7 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
         holder.taskNameTextView.setText(task.getTaskName());
         holder.taskDescriptionTextView.setText(task.getTaskDescription());
         holder.timeToCompleteTextView.setText(task.getTimeToComplete() + " " + task.getTimeFormat());
+        holder.isDoneCheckbox.setChecked(task.isDone());
     }
 
     @Override
@@ -61,6 +64,7 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
         if(this.tasks == null)
             this.tasks = new ArrayList<>();
 
+        Log.i("TasksRecyclerAdapter", "Updating tasks...");
         this.tasks.clear();
         this.tasks.addAll(tasks);
         notifyDataSetChanged();
@@ -73,17 +77,18 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
 
     class ViewHolder extends RecyclerView.ViewHolder
     {
+        private CheckBox isDoneCheckbox;
         private TextView taskNameTextView;
         private TextView taskDescriptionTextView;
         private TextView timeToCompleteTextView;
         private ImageButton expandCollapseButton;
         private ConstraintLayout expandableLayout;
-        private ImageButton menuButton;
         private PopupMenu menu;
 
         ViewHolder(@NonNull View itemView)
         {
             super(itemView);
+            isDoneCheckbox = itemView.findViewById(R.id.isDoneCheckbox);
             taskNameTextView = itemView.findViewById(R.id.taskName);
             taskDescriptionTextView = itemView.findViewById(R.id.taskDescription);
             timeToCompleteTextView = itemView.findViewById(R.id.timeToComplete);
@@ -100,7 +105,7 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
                 }
             });
             expandableLayout = itemView.findViewById(R.id.expandableLayout);
-            menuButton = itemView.findViewById(R.id.menuButton);
+            ImageButton menuButton = itemView.findViewById(R.id.menuButton);
             if(menu != null)
                 menu.dismiss();
             menuButton.setOnClickListener(new View.OnClickListener()
@@ -132,6 +137,16 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
                     menu.show();
                 }
             });
+            isDoneCheckbox.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+                    Log.i("TasksRecyclerAdapter", "IsDone checkbox is " + (isDoneCheckbox.isChecked() ? "checked." : "not checked."));
+                    if(listener != null)
+                        listener.onIsDoneUpdated(getAdapterPosition(), isDoneCheckbox.isChecked());
+                }
+            });
             setExpanded(false);
         }
 
@@ -150,11 +165,12 @@ public class TasksRecyclerAdapter extends RecyclerView.Adapter<TasksRecyclerAdap
         }
     }
 
-    public interface OnTaskMenuItemSelectedListener
+    public interface OnTasksAdapterEventListener
     {
         void onTaskMenuItemSelected(int position, int itemId);
+        void onIsDoneUpdated(int position, boolean isDone);
     }
-    public void setOnTaskMenuItemSelectedListener(OnTaskMenuItemSelectedListener listener)
+    public void setOnTasksAdapterEventListener(OnTasksAdapterEventListener listener)
     {
         this.listener = listener;
     }

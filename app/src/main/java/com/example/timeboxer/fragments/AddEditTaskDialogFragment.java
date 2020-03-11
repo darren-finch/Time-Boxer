@@ -13,6 +13,7 @@ import androidx.fragment.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -62,7 +63,7 @@ public class AddEditTaskDialogFragment extends DialogFragment
         taskNameEditText = dialogView.findViewById(R.id.taskNameEditText);
         taskDescriptionEditText = dialogView.findViewById(R.id.taskDescriptionEditText);
         timeToCompleteEditText = dialogView.findViewById(R.id.timeToCompleteEditText);
-        Spinner timeFormatSpinner = dialogView.findViewById(R.id.timeFormatSpinner);
+        final Spinner timeFormatSpinner = dialogView.findViewById(R.id.timeFormatSpinner);
 
         //If editing a task, not creating a task...
         if(taskData != null)
@@ -97,8 +98,21 @@ public class AddEditTaskDialogFragment extends DialogFragment
                         if(taskNameEditText.getText() == null || taskDescriptionEditText.getText() == null || timeToCompleteEditText.getText() == null || timeToCompleteEditText.getText().toString().isEmpty() || curTimeFormat == null)
                             return;
 
-                        Task newTask = new Task(taskNameEditText.getText().toString(), taskDescriptionEditText.getText().toString(), Integer.parseInt(timeToCompleteEditText.getText().toString()), curTimeFormat);
-                        listener.onPositiveButtonClicked(AddEditTaskDialogFragment.this, newTask, taskData != null);
+                        String taskName = taskNameEditText.getText().toString();
+                        String taskDescription = taskDescriptionEditText.getText().toString();
+                        int timeToComplete = Integer.parseInt(timeToCompleteEditText.getText().toString());
+
+                        boolean updating = taskData != null;
+
+                        if(!updating)
+                            taskData = new Task(false, taskName, taskDescription, timeToComplete, curTimeFormat);
+
+                        taskData.setTaskName(taskName);
+                        taskData.setTaskDescription(taskDescription);
+                        taskData.setTimeToComplete(timeToComplete);
+                        taskData.setTimeFormat(curTimeFormat);
+
+                        listener.onPositiveButtonClicked(AddEditTaskDialogFragment.this, taskData, updating);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener()
