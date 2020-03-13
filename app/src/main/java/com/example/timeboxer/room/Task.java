@@ -14,7 +14,7 @@ public class Task
     private String taskDescription;
     private int timeToComplete;
     private String timeFormat;
-    //TODO: Add startTime for task. This is set from the calendar view. In the calendar view you'll create tasks for certain days and you'll need to know when the task starts.
+    //TODO: Add startTime for task. This is set from the calendar view. In the calendar view you'll create tasks for certain days and you'll need to know when the task starts. In the home screen, you'll automatically load the tasks for your current date.
 
     public boolean isExpanded;
 
